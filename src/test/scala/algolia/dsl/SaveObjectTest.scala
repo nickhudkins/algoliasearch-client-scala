@@ -55,6 +55,26 @@ class SaveObjectTest extends AlgoliaTest {
         )
       }
 
+      it("should call API with custom serialized object") {
+        import org.json4s.{DefaultFormats, FieldSerializer, Formats}
+        import org.json4s.FieldSerializer._
+        val customSerialization = FieldSerializer[BasicObject](
+          renameTo("name", "renamedField")
+        )
+        implicit val formats: Formats = DefaultFormats + customSerialization
+
+        (index into "toto" `object` BasicObject("algolia", 2))
+          .build() should be(
+          HttpPayload(
+            POST,
+            List("1", "indexes", "toto"),
+            body = Some("""{"renamedField":"algolia","age":2}"""),
+            isSearch = false,
+            requestOptions = None
+          )
+        )
+      }
+
       describe("batch") {
 
         it("should index case classes") {
